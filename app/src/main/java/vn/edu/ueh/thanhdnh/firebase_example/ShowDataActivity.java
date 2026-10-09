@@ -1,10 +1,8 @@
 package vn.edu.ueh.thanhdnh.firebase_example;
 
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -13,8 +11,6 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -25,12 +21,11 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class ShowDataActivity extends AppCompatActivity {
     FirebaseFirestore db;
     RecyclerView recyclerView;
-    List<User> users = new ArrayList();
+    List<Article> articles = new ArrayList();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +41,8 @@ public class ShowDataActivity extends AppCompatActivity {
         FirebaseApp.initializeApp(this);
         //users.add(new User("default", "000"));
 
-        recyclerView = findViewById(R.id.reclyclerview);
-        UserViewAdapter adapter = new UserViewAdapter(getBaseContext(), users);
+        recyclerView = findViewById(R.id.recyclerView);
+        ArticleViewAdapter adapter = new ArticleViewAdapter(getBaseContext(), articles);
         recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
         recyclerView.setAdapter(adapter);
 
@@ -67,7 +62,7 @@ public class ShowDataActivity extends AppCompatActivity {
             }
           }
         });*/
-      db.collection("users").addSnapshotListener(new EventListener<QuerySnapshot>() {
+      /*db.collection("users").addSnapshotListener(new EventListener<QuerySnapshot>() {
         @Override
         public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException error) {
           if (snapshots != null) {
@@ -81,6 +76,27 @@ public class ShowDataActivity extends AppCompatActivity {
             adapter.notifyDataSetChanged();
           }
         }
-      });
+      });*/
+
+        db.collection("articles").addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException error) {
+                if (snapshots != null) {
+                    articles.clear();
+                    for (QueryDocumentSnapshot q : snapshots) {
+                        Map<String, Object> data = q.getData();
+                        String id = q.getId();
+                        String title = (String) data.get("title");
+                        String content = (String) data.get("content");
+                        String imageUrl = (String) data.get("image_url");
+
+                        Article article = new Article(id, title, content, imageUrl);
+                        articles.add(article);
+                    }
+                    adapter.update(articles);
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        });
     }
 }
